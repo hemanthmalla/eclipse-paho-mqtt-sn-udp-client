@@ -40,9 +40,6 @@ public class SimpleMqttsClient implements MqttsCallbackPreDefinedTopicId {
 		this(gw, 20000,false);
 	}
 
-	public SimpleMqttsClient(String gw, int port) {
-		this(gw, port, false);
-	}
 
 	public SimpleMqttsClient(String gw, int port, boolean auto) {
 		client = new MqttsClient(gw, port, auto);
@@ -56,6 +53,48 @@ public class SimpleMqttsClient implements MqttsCallbackPreDefinedTopicId {
 		client = new MqttsClient(gatewayAddress, gatewayPort, maxMqttsMsgLength,
 				minMqttsMsgLength, maxRetries, ackWaitingTime, autoReconnect);
 		client.registerHandler(this);
+	}
+
+	public SimpleMqttsClient(String gw, int localPort) {
+		this(gw, 20000, false, localPort);
+	}
+
+	public SimpleMqttsClient(String gw, int port, int localPort) {
+		this(gw, port, false, localPort);
+	}
+
+	public SimpleMqttsClient(String gw, int port, boolean auto, int localPort) {
+		this.client = null;
+		this.tableIdTopic = new Hashtable();
+		this.tableTopicId = new Hashtable();
+		this.waitConnect = false;
+		this.waitRegAck = false;
+		this.waitPubAck = false;
+		this.regTopic = null;
+		this.waitSubAck = false;
+		this.waitUnSubAck = false;
+		this.subTopic = null;
+		this.callback = null;
+		this.connected = false;
+		this.client = new MqttsClient(gw, port, auto, localPort);
+		this.client.registerHandler(this);
+	}
+
+	public SimpleMqttsClient(String gatewayAddress, int gatewayPort, int maxMqttsMsgLength, int minMqttsMsgLength, int maxRetries, int ackWaitingTime, boolean autoReconnect, int localPort) {
+		this.client = null;
+		this.tableIdTopic = new Hashtable();
+		this.tableTopicId = new Hashtable();
+		this.waitConnect = false;
+		this.waitRegAck = false;
+		this.waitPubAck = false;
+		this.regTopic = null;
+		this.waitSubAck = false;
+		this.waitUnSubAck = false;
+		this.subTopic = null;
+		this.callback = null;
+		this.connected = false;
+		this.client = new MqttsClient(gatewayAddress, gatewayPort, maxMqttsMsgLength, minMqttsMsgLength, maxRetries, ackWaitingTime, autoReconnect, localPort);
+		this.client.registerHandler(this);
 	}
 
 	public void setCallback(SimpleMqttsCallback callback) {

@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
 import org.eclipse.paho.mqttsn.udpclient.exceptions.MqttsException;
 import org.eclipse.paho.mqttsn.udpclient.messages.Message;
@@ -89,6 +90,26 @@ public class UDPInterface implements Runnable {
       this.readThread.start();
     } catch (Exception e) {
       throw new MqttsException("UDPInterface - Error initializing :" + e);
+    }
+  }
+
+  public void initialize(MsgQueue queue, ClientParameters clientParms, int localPort) throws MqttsException {
+    try {
+      this.udpSocket = new DatagramSocket(new InetSocketAddress(localPort));
+      this.queue = queue;
+      this.clientParms = clientParms;
+      if (this.clientParms.getMaxMqttsLength() > 65536) {
+        throw new IllegalArgumentException("UDP only supports packet sizes up to 64KByte!");
+      } else if (this.clientParms.getMaxMqttsLength() < 16) {
+        throw new IllegalArgumentException("Maximum packet size should be larger than 16");
+      } else {
+        this.recData = new byte[this.clientParms.getMaxMqttsLength()];
+        this.readThread = new Thread(this, "UDPInterface");
+        this.running = true;
+        this.readThread.start();
+      }
+    } catch (Exception var5) {
+      throw new MqttsException("UDPInterface - Error initializing :" + var5);
     }
   }
 

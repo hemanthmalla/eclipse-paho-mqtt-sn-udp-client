@@ -168,6 +168,64 @@ public class MqttsClient implements Runnable {
         auto);    //auto reconnect
   }
 
+  public MqttsClient(String gatewayAddress, int gatewayPort, int maxMqttsMsgLength, int minMqttsMsgLength, int maxRetries, int ackWaitingTime, boolean autoReconnect, int localPort) {
+    this.message = null;
+    this.lostGw = false;
+    this.callback = null;
+    this.udpInterface = null;
+    this.queue = null;
+    this.readThread = null;
+    this.timer = null;
+    this.clientParms = null;
+    this.autoReconnect = false;
+    this.ackMissedCounter = 0;
+    InetAddress adr = null;
+
+    try {
+      adr = InetAddress.getByName(gatewayAddress);
+      this.clientParms = new ClientParameters();
+      this.clientParms.setGatewayAddress(adr);
+      this.clientParms.setGatewayPort(gatewayPort);
+      this.clientParms.setMaxMqttsLength(maxMqttsMsgLength);
+      this.clientParms.setMinMqttsLength(minMqttsMsgLength);
+      this.clientParms.setMaxRetries(maxRetries);
+      this.clientParms.setWaitingTime(ackWaitingTime);
+      this.clState = MqttsClient.ClientState.NOT_ACTIVE;
+      this.msgId = 1;
+      this.autoReconnect = autoReconnect;
+      this.queue = new MsgQueue();
+      this.timer = new TimerService(this.queue);
+      this.udpInterface = new UDPInterface();
+      this.udpInterface.initialize(this.queue, this.clientParms, localPort);
+      this.readThread = new Thread(this, "MqttsClient");
+      this.running = true;
+      this.readThread.start();
+      String s = null;
+      s = " without ";
+      ClientLogger.log(1, "MQTT-S client version 140217" + s + "encapsulation started ...");
+      System.out.println("MQTT-S client version 140217" + s + "encapsulation started ...");
+    } catch (MqttsException var11) {
+      ClientLogger.log(3, "" + var11);
+      var11.printStackTrace();
+    } catch (UnknownHostException var12) {
+      ClientLogger.log(3, "" + var12);
+      var12.printStackTrace();
+    }
+
+  }
+
+  public MqttsClient(String gatewayAddress, int gatewayPort, int maxMqttsMsgLength, int minMqttsMsgLength, int maxRetries, int ackWaitingTime, int localPort) {
+    this(gatewayAddress, gatewayPort, maxMqttsMsgLength, minMqttsMsgLength, maxRetries, ackWaitingTime, false, localPort);
+  }
+
+  public MqttsClient(String gatewayAddress, int gatewayPort, int localPort) {
+    this(gatewayAddress, gatewayPort, 256, 2, 2, 5, false, localPort);
+  }
+
+  public MqttsClient(String gatewayAddress, int gatewayPort, boolean auto, int localPort) {
+    this(gatewayAddress, gatewayPort, 256, 2, 2, 5, auto, localPort);
+  }
+
 
   /**
    * Registers the callback handler of the application. This handler is used to notify the app about
